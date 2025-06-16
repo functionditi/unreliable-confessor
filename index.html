@@ -8,7 +8,7 @@
     <style>
     body {
       margin: 0;
-      font-family:'Courier New', Courier, monospace;
+      font-family: 'Courier New', monospace;
       background: #111;
       color: #f0f0f0;
       display: flex;
@@ -55,6 +55,7 @@
       display: flex;
       padding: 10px;
       background: #1a1a1a;
+      height: 100px
     }
 
     input {
@@ -104,7 +105,7 @@
     #mood-container {
     position: relative;
     width: 100%;
-    height: 200px;
+    height: 100px;
     background: radial-gradient(circle at center, #111 0%, #000 100%);
     border-top: 1px solid #333;
     cursor: crosshair;
@@ -115,7 +116,8 @@
     color: #888;
     font-size: 0.8em;
     width: 100%;
-    text-align: center;
+    text-align: left;
+    padding-left: 1rem;
     top: 50%;
     transform: translateY(-50%);
     pointer-events: none;
@@ -133,13 +135,13 @@
     <div id="chat"></div>
     <div id="mood-container">
     <canvas id="mood-canvas"></canvas>
-    <div id="mood-instruction">click + drag to confess</div>
+    <div id="mood-instruction">click + drag/draw to confess</div>
     </div>
-<!-- 
+
     <div id="input-area">
-      <input type="text" id="confessInput" placeholder="confess something..." autocomplete="off" />
+      <input type="text" id="confessInput" placeholder="or, if you have something specific to get off your chest..." autocomplete="off" />
       <button id="sendButton">send</button>
-    </div> -->
+    </div>
   </div>
 
   <div id="ledger">

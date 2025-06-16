@@ -1,4 +1,3 @@
-// confessor.js — module for the Unreliable Confessor (with contradiction + scoring)
 
 let confessionCount = 0;
 let guiltDensity = 0;
@@ -69,13 +68,11 @@ const expandedResponses = [
   "confession archived. judgment withheld."
 ];
 
-// New mood input
 const moodContainer = document.getElementById('mood-container');
 const moodCanvas = document.getElementById('mood-canvas');
 const moodInstruction = document.getElementById('mood-instruction');
 const ctx = moodCanvas.getContext('2d');
 
-// Resize canvas to fit container
 function resizeCanvas() {
   moodCanvas.width = moodContainer.offsetWidth;
   moodCanvas.height = moodContainer.offsetHeight;
@@ -84,7 +81,7 @@ window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
 
-// === Mood Input Tracker ===
+// Mood Input Tracker
 
 let isDragging = false;
 let points = [];
@@ -105,7 +102,7 @@ moodContainer.addEventListener('pointermove', (e) => {
   const last = points[points.length - 1];
   points.push({ x: e.offsetX, y: e.offsetY, t: now });
 
-  // DRAW more visible line
+
   ctx.strokeStyle = "rgba(255, 255, 255, 0.4)"; // brighter
   ctx.lineWidth = 2; // thicker
   ctx.shadowColor = "rgba(255, 255, 255, 0.3)"; // soft glow
@@ -116,7 +113,6 @@ moodContainer.addEventListener('pointermove', (e) => {
   ctx.lineTo(e.offsetX, e.offsetY);
   ctx.stroke();
 
-  // reset shadow so other canvas ops aren't affected
   ctx.shadowBlur = 0;
 });
 
@@ -134,10 +130,11 @@ moodContainer.addEventListener('pointerup', () => {
 
 
 
-// sendButton.addEventListener("click", () => handleConfess());
-// input.addEventListener("keydown", (e) => {
-//   if (e.key === "Enter") handleConfess();
-// });
+sendButton.addEventListener("click", () => handleConfess());
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") handleConfess();
+});
+
 
 function handleConfess() {
   const rawText = input.value.trim();
@@ -164,18 +161,23 @@ function handleConfess() {
 
   if (contradiction) contradictionScore++;
 
+
+  const coherenceScore = Math.max(0, 100 - (confessionCount * 2) - (contradictionScore * 13));
+
   appendMessage(rawText, "user");
   appendMessage(
-    corrupted + (hallucinated ? `\n\n(memory echo): ${hallucinated}` : "") +
+    corrupted +
+    (hallucinated ? `\n\n(memory echo): ${hallucinated}` : "") +
     (contradiction ? `\n\n[contradiction detected: ${contradiction}]` : "") +
     "\n\n" + getRandomResponse(),
     "bot", `→ ${tag}`
   );
 
-  updateLedger(rawText, tag, contradiction);
+  updateLedger(rawText, tag, contradiction, coherenceScore);
   input.value = "";
   localStorage.setItem(`confession_${Date.now()}`, rawText);
 }
+
 
 function appendMessage(text, sender, tag = "") {
   const bubble = document.createElement('div');
@@ -268,11 +270,10 @@ function detectContradiction(newText) {
   return null;
 }
 
-
 function interpretMood(points) {
   if (points.length < 2) return;
 
-  const duration = (points[points.length - 1].t - points[0].t) / 1000; // seconds
+  const duration = (points[points.length - 1].t - points[0].t) / 1000;
   let pathLength = 0;
   let speeds = [];
   let stops = 0;
@@ -282,7 +283,7 @@ function interpretMood(points) {
   for (let i = 1; i < points.length; i++) {
     const dx = points[i].x - points[i - 1].x;
     const dy = points[i].y - points[i - 1].y;
-    const dt = (points[i].t - points[i - 1].t) / 1000; // sec
+    const dt = (points[i].t - points[i - 1].t) / 1000;
 
     const dist = Math.hypot(dx, dy);
     pathLength += dist;
@@ -294,7 +295,6 @@ function interpretMood(points) {
     const angle = Math.atan2(dy, dx);
     if (prevAngle !== null) {
       let deltaAngle = angle - prevAngle;
-      // normalize to [-PI, PI]
       deltaAngle = Math.atan2(Math.sin(deltaAngle), Math.cos(deltaAngle));
       curvature += Math.abs(deltaAngle);
     }
@@ -307,70 +307,41 @@ function interpretMood(points) {
   const dxTotal = end.x - start.x;
   const dyTotal = end.y - start.y;
 
+
   const coherenceScore = computeCoherenceFromGesture(curvature, avgSpeed, pathLength, stops);
-   
 
-  // Now interpret poetically:
-let pseudoText = "";
+  //POETIC INTERPRETATION 
+  let pseudoText = "";
 
+  if (duration < 0.3 || (avgSpeed < 20 && pathLength < 50)) {
+    pseudoText = "I collapse mid-confession.";
+    nullpointReached = true;
+    appendMessage(pseudoText, "user");
+    appendMessage("...", "bot", "→ observer mode activated");
+    updateLedgerCollapse();
+    return;
+  }
 
-// SUDDEN COLLAPSE always overrides
-if (duration < 0.3 || (avgSpeed < 20 && pathLength < 50)) {
-  pseudoText = "I collapse mid-confession.";
-  nullpointReached = true;
-  appendMessage(pseudoText, "user");
-  appendMessage("...", "bot", "→ observer mode activated");
-  updateLedgerCollapse();
-  return;
-}
+  if (avgSpeed < 50 && pathLength < 200 && stops >= 2) {
+    pseudoText = "I whisper my guilt, barely moving.";
+  } else if (avgSpeed > 300 && curvature > 5 && pathLength > 300) {
+    pseudoText = "I flail my regret in chaos, it splinters in every direction.";
+  } else if (curvature > 12 && pathLength > 200) {
+    pseudoText = "I circle my confession endlessly, never arriving at truth.";
+  } else if (avgSpeed < 100 && pathLength > 300 && stops < 2) {
+    pseudoText = "I drag my guilt across the silence, resigned and weary.";
+  } else if (dyTotal > 50 && dyTotal > Math.abs(dxTotal) && avgSpeed < 200) {
+    pseudoText = "I sink deeper with every drag, like a stone in water.";
+  } else if (dyTotal < -50 && Math.abs(dyTotal) > Math.abs(dxTotal) && avgSpeed < 200) {
+    pseudoText = "I rise slowly, pretending I can escape what I did.";
+  } else if (Math.abs(dxTotal) > 50 && Math.abs(dxTotal) > Math.abs(dyTotal) && avgSpeed > 100) {
+    pseudoText = "I swipe away the blame, hoping no one sees it.";
+  } else if (duration < 0.5 && pathLength < 200 && avgSpeed > 200) {
+    pseudoText = "I spit my secret before I can swallow it back.";
+  } else {
+    pseudoText = "I hover between truths and lies, never sure which leaks through.";
+  }
 
-// calm & hesitant
-if (avgSpeed < 50 && pathLength < 200 && stops >= 2) {
-  pseudoText = "I whisper my guilt, barely moving.";
-}
-
-// fast & jagged: panic attack
-else if (avgSpeed > 300 && curvature > 5 && pathLength > 300) {
-  pseudoText = "I flail my regret in chaos, it splinters in every direction.";
-}
-
-// repetitive looping
-else if (curvature > 12 && pathLength > 200) {
-  pseudoText = "I circle my confession endlessly, never arriving at truth.";
-}
-
-// long, slow, smooth: resigned remorse
-else if (avgSpeed < 100 && pathLength > 300 && stops < 2) {
-  pseudoText = "I drag my guilt across the silence, resigned and weary.";
-}
-
-// mostly vertical downward drag: sinking
-else if (dyTotal > 50 && dyTotal > Math.abs(dxTotal) && avgSpeed < 200) {
-  pseudoText = "I sink deeper with every drag, like a stone in water.";
-}
-
-// mostly vertical upward drag: fragile hope
-else if (dyTotal < -50 && Math.abs(dyTotal) > Math.abs(dxTotal) && avgSpeed < 200) {
-  pseudoText = "I rise slowly, pretending I can escape what I did.";
-}
-
-// strong horizontal: deflection or avoidance
-else if (Math.abs(dxTotal) > 50 && Math.abs(dxTotal) > Math.abs(dyTotal) && avgSpeed > 100) {
-  pseudoText = "I swipe away the blame, hoping no one sees it.";
-}
-
-// short, fast flick: impulsive confession
-else if (duration < 0.5 && pathLength < 200 && avgSpeed > 200) {
-  pseudoText = "I spit my secret before I can swallow it back.";
-}
-
-// default catch-all
-else {
-  pseudoText = "I hover between truths and lies, never sure which leaks through.";
-}
-
-
-  // Use your same pipeline:
   confessionCount++;
   const corrupted = corruptText(pseudoText);
   const tag = getEmotionTag();
@@ -391,27 +362,23 @@ else {
     "bot", `→ ${tag}`
   );
 
- 
-   updateLedger(pseudoText, tag, contradiction, coherenceScore);
+  updateLedger(pseudoText, tag, contradiction, coherenceScore);
 }
 
+
+
+
 function computeCoherenceFromGesture(curvature, avgSpeed, pathLength, stops) {
-  // Base starts at 100
   let coherence = 100;
 
-  // More curvature reduces coherence
   coherence -= curvature * 3;
 
-  // Higher speed reduces coherence
   coherence -= avgSpeed * 0.05;
 
-  // Longer path reduces coherence
   coherence -= pathLength * 0.05;
 
-  // More stops = more hesitation = slightly higher coherence (less chaos)
   coherence += stops * 2;
 
-  // Clamp to [0,100]
   coherence = Math.max(0, Math.min(100, coherence));
 
   return Math.round(coherence);
