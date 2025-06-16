@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Unreliable Confessor</title>
+  <!-- <link rel="stylesheet" href="style.css"> -->
+    <style>
+    body {
+      margin: 0;
+      font-family:'Courier New', Courier, monospace;
+      background: #111;
+      color: #f0f0f0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #chat-container {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #333;
+    }
+
+    #chat {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      max-width: 70%;
+      margin: 5px 0;
+      padding: 10px 14px;
+      border-radius: 12px;
+      position: relative;
+      white-space: pre-wrap;
+    }
+
+    .user {
+      align-self: flex-end;
+      background-color: #444;
+    }
+
+    .bot {
+      align-self: flex-start;
+      background-color: #222;
+      border-left: 2px solid #888;
+    }
+
+    #input-area {
+      display: flex;
+      padding: 10px;
+      background: #1a1a1a;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      background: #000;
+      color: #fff;
+      border: 1px solid #333;
+      font-family: inherit;
+    }
+
+    button {
+      padding: 10px;
+      background: #333;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    .tag {
+      display: block;
+      font-size: 0.8em;
+      color: #888;
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    #ledger {
+      flex: 1;
+      background: #0b0b0b;
+      padding: 15px;
+      font-size: 0.9em;
+      overflow-y: auto;
+    }
+
+    .log-entry {
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #333;
+    }
+
+    .label {
+      color: #777;
+    }
+
+
+    #mood-container {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    background: radial-gradient(circle at center, #111 0%, #000 100%);
+    border-top: 1px solid #333;
+    cursor: crosshair;
+    }
+
+    #mood-instruction {
+    position: absolute;
+    color: #888;
+    font-size: 0.8em;
+    width: 100%;
+    text-align: center;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    }
+
+    #mood-canvas {
+    width: 100%;
+    height: 100%;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <div id="chat"></div>
+    <div id="mood-container">
+    <canvas id="mood-canvas"></canvas>
+    <div id="mood-instruction">click + drag to confess</div>
+    </div>
+<!-- 
+    <div id="input-area">
+      <input type="text" id="confessInput" placeholder="confess something..." autocomplete="off" />
+      <button id="sendButton">send</button>
+    </div> -->
+  </div>
+
+  <div id="ledger">
+    <h3>Memory Ledger</h3>
+    <div id="log"></div>
+  </div>
+
+  <script type="module" src="confessor.js"></script>
+</body>
+</html>
